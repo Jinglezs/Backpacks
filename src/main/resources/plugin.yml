@@ -1,0 +1,5 @@
+name: Backpacks
+author: Jingles
+version: 1.0.0
+main: net.jingles.backpacks.BackpacksMain
+api-version: "1.14"
