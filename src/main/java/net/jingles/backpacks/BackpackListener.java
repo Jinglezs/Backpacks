@@ -1,18 +1,23 @@
 package net.jingles.backpacks;
 
+import net.jingles.backpacks.persistence.PersistentDataTypes;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,7 +45,7 @@ public class BackpackListener implements Listener {
     backpack.saveInventory(event.getInventory());
   }
 
-  /*@EventHandler
+  @EventHandler
   public void onBackpackEdit(InventoryClickEvent event) {
     if (!(event.getInventory().getHolder() instanceof Backpack)) return;
     if (event.getCurrentItem() == null) return;
@@ -48,10 +53,7 @@ public class BackpackListener implements Listener {
     //Prevent illegal blocks from being added to the backpack due to storage constraints
     if (isBackpack(event.getCurrentItem()) || event.getCurrentItem().getType() == Material.SHULKER_BOX)
       event.setCancelled(true);
-
-    Backpack backpack = (Backpack) event.getInventory().getHolder();
-    backpack.saveInventory(event.getInventory());
-  }*/
+  }
 
   @EventHandler
   public void onPrepareItemCraft(PrepareItemCraftEvent event) {
@@ -110,7 +112,7 @@ public class BackpackListener implements Listener {
 
   private Backpack getBackpack(ItemStack itemStack) {
     return plugin.getCachedBackpacks().stream()
-            .filter(pack -> pack.getItemStack().isSimilar(itemStack))
+            .filter(pack -> pack.getUUID().equals(getUUIDFromItem(itemStack)))
             .findAny().orElseGet(() -> new Backpack(plugin, itemStack));
   }
 
@@ -122,6 +124,10 @@ public class BackpackListener implements Listener {
   private BackpackType getTypeFromItem(ItemStack item) {
     return BackpackType.valueOf(item.getItemMeta()
             .getPersistentDataContainer().get(plugin.TYPE, PersistentDataType.STRING));
+  }
+
+  private UUID getUUIDFromItem(ItemStack item) {
+    return item.getItemMeta().getPersistentDataContainer().get(plugin.ID, PersistentDataTypes.UUID);
   }
 
 }

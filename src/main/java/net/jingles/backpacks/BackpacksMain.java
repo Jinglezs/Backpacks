@@ -12,6 +12,7 @@ public class BackpacksMain extends JavaPlugin {
 
   public final NamespacedKey CONTENTS = new NamespacedKey(this, "contents");
   public final NamespacedKey TYPE = new NamespacedKey(this, "type");
+  public final NamespacedKey ID = new NamespacedKey(this, "uuid");
 
   private final Set<Backpack> cached = new HashSet<>();
 
