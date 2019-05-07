@@ -10,46 +10,35 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.UUID;
-
 public class Backpack implements InventoryHolder {
 
   private final BackpacksMain plugin;
-  private final ItemStack itemStack;
-  private final BackpackType type;
-  private final UUID id;
+  private ItemStack itemStack;
+  //private final UUID id;
+  private BackpackType type;
 
-  //Used to create a backpack instance from an existing backpack item
-  Backpack(BackpacksMain plugin, ItemStack item) {
+  /* Creates a brand new backpack item if type is not null. Otherwise it creates a backpack
+    instance for a pre-existing backpack item. */
+  Backpack(BackpacksMain plugin, ItemStack item, BackpackType type) {
     this.plugin = plugin;
     this.itemStack = item;
-    this.type = BackpackType.valueOf(item.getItemMeta()
-            .getPersistentDataContainer().get(plugin.TYPE, PersistentDataType.STRING));
-    this.id = item.getItemMeta().getPersistentDataContainer().get(plugin.ID, PersistentDataTypes.UUID);
 
-    plugin.getCachedBackpacks().add(this);
-  }
+    if (type != null) {
 
-  //Used when creating an empty Backpack item
-  Backpack(BackpacksMain plugin, BackpackType type) {
-    this.plugin = plugin;
-    this.type = type;
-    this.id = UUID.randomUUID();
+      this.type = type;
+      ItemMeta meta = item.getItemMeta();
+      PersistentDataContainer container = meta.getPersistentDataContainer();
 
-    ItemStack backpack = new ItemStack(Material.MOJANG_BANNER_PATTERN, 1);
-    ItemMeta meta = backpack.getItemMeta();
-    meta.setDisplayName(type.getName());
+      container.set(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY,
+              new ItemStack[]{new ItemStack(Material.AIR, 1)});
+      container.set(plugin.TYPE, PersistentDataType.STRING, type.name());
+      item.setItemMeta(meta);
 
-    PersistentDataContainer container = meta.getPersistentDataContainer();
+    } else {
+      this.type = BackpackType.valueOf(item.getItemMeta()
+              .getPersistentDataContainer().get(plugin.TYPE, PersistentDataType.STRING));
+    }
 
-    container.set(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY,
-            new ItemStack[]{new ItemStack(Material.AIR, 1)});
-    container.set(plugin.TYPE, PersistentDataType.STRING, type.name());
-    container.set(plugin.ID, PersistentDataTypes.UUID, id);
-    backpack.setItemMeta(meta);
-
-    this.itemStack = backpack;
-    plugin.getCachedBackpacks().add(this);
   }
 
   ItemStack getItemStack() {
@@ -60,8 +49,16 @@ public class Backpack implements InventoryHolder {
     return this.type;
   }
 
-  UUID getUUID() {
-    return this.id;
+  void setType(BackpackType type) {
+    ItemMeta meta = getItemStack().getItemMeta();
+
+    if (meta.getDisplayName().equalsIgnoreCase(getType().getName()))
+      meta.setDisplayName(type.getName());
+
+    meta.getPersistentDataContainer().set(plugin.TYPE, PersistentDataType.STRING, type.name());
+    getItemStack().setItemMeta(meta);
+
+    this.type = type;
   }
 
   @Override
@@ -72,10 +69,10 @@ public class Backpack implements InventoryHolder {
     return inventory;
   }
 
-  void saveInventory(Inventory inventory) {
+  void saveInventory(ItemStack[] items) {
     ItemMeta meta = getItemStack().getItemMeta();
     meta.getPersistentDataContainer()
-            .set(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY, inventory.getStorageContents());
+            .set(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY, items);
     getItemStack().setItemMeta(meta);
   }
 
