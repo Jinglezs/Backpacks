@@ -14,7 +14,6 @@ public class Backpack implements InventoryHolder {
 
   private final BackpacksMain plugin;
   private ItemStack itemStack;
-  //private final UUID id;
   private BackpackType type;
 
   /* Creates a brand new backpack item if type is not null. Otherwise it creates a backpack
@@ -71,8 +70,7 @@ public class Backpack implements InventoryHolder {
 
   void saveInventory(ItemStack[] items) {
     ItemMeta meta = getItemStack().getItemMeta();
-    meta.getPersistentDataContainer()
-            .set(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY, items);
+    meta.getPersistentDataContainer().set(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY, items);
     getItemStack().setItemMeta(meta);
   }
 

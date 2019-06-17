@@ -1,21 +1,25 @@
 package net.jingles.backpacks;
 
-import net.jingles.backpacks.persistence.PersistentDataTypes;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import static net.jingles.backpacks.BackpackUtils.*;
 
 public class BackpackListener implements Listener {
 
@@ -43,9 +47,8 @@ public class BackpackListener implements Listener {
 
   @EventHandler
   public void onBackpackEdit(InventoryClickEvent event) {
-    if (event.getCurrentItem() == null) return;
-
-    if (!(event.getInventory().getHolder() instanceof Backpack)) return;
+    if (event.getCurrentItem() == null ||
+        !(event.getInventory().getHolder() instanceof Backpack)) return;
 
     //Prevent illegal blocks from being added to the backpack due to storage constraints
     if (isBackpack(event.getCurrentItem()) != -1 || event.getCurrentItem().getType() == Material.SHULKER_BOX)
@@ -79,6 +82,11 @@ public class BackpackListener implements Listener {
       if (oldBackpack.getType() != BackpackType.HEAVY)
         event.getInventory().setResult(null);
 
+    } else if (type == BackpackType.RESOURCE) {
+
+      if (oldBackpack.getType() != BackpackType.COLOSSAL)
+        event.getInventory().setResult(null);
+
     }
 
   }
@@ -98,21 +106,19 @@ public class BackpackListener implements Listener {
     backpack.saveInventory(oldBackpack.getInventory().getStorageContents());
   }
 
-  private Backpack getBackpack(ItemStack itemstack) {
-    return new Backpack(plugin, itemstack, null);
-  }
+  @EventHandler
+  public void onItemPickup(EntityPickupItemEvent event) {
+    if (!(event.getEntity() instanceof Player)) return;
 
-  private int isBackpack(ItemStack item) {
-    if (item == null || !item.hasItemMeta() || item.getType() != Material.MOJANG_BANNER_PATTERN) return -1;
-    PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
-    if (container.has(plugin.TYPE, PersistentDataType.STRING) &&
-            !container.has(plugin.CONTENTS, PersistentDataTypes.ITEM_ARRAY)) return 0;
-    else return 1;
-  }
+    Player player = (Player) event.getEntity();
+    List<Backpack> backpacks = getResourceBackpacks(player.getInventory());
 
-  private BackpackType getTypeFromItem(ItemStack item) {
-    return BackpackType.valueOf(item.getItemMeta()
-            .getPersistentDataContainer().get(plugin.TYPE, PersistentDataType.STRING));
+    if (!backpacks.isEmpty()) event.setCancelled(true);
+    else return;
+
+    ItemStack item = event.getItem().getItemStack();
+    event.getItem().remove();
+    addToResourceBackpacks(item, player.getInventory(), player.getLocation());
   }
 
 }

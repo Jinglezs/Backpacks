@@ -6,7 +6,8 @@ public enum BackpackType {
 
   LIGHTWEIGHT(18, ChatColor.LIGHT_PURPLE + "Lightweight Backpack"),
   HEAVY(36, ChatColor.LIGHT_PURPLE + "Heavy Backpack"),
-  COLOSSAL(54, ChatColor.LIGHT_PURPLE + "Hoeish Backpack");
+  COLOSSAL(54, ChatColor.LIGHT_PURPLE + "Hoeish Backpack"),
+  RESOURCE(54, ChatColor.LIGHT_PURPLE + "Resource Backpack");
 
   private int size;
   private String name;
