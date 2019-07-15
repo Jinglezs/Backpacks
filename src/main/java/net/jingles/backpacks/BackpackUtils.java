@@ -83,6 +83,8 @@ public class BackpackUtils {
    * @param location the location to drop the item if the item could not be added anywhere.
    */
   public static void addToResourceBackpacks(ItemStack item, Inventory inventory, Location location) {
+    // Do not try to add backpacks to a backpack.
+    if (isBackpack(item) != -1) return;
 
     List<Backpack> backpacks = getResourceBackpacks(inventory);
 
@@ -90,7 +92,7 @@ public class BackpackUtils {
       Inventory backpackInv = backpack.getInventory();
       // Try to add the items
       Map<Integer, ItemStack> leftover = backpackInv.addItem(item);
-      // Save the items they were successfully added.
+      // Save the items if they were successfully added.
       backpack.saveInventory(backpackInv.getContents());
       // If all items were successfully added, end method execution.
       if (leftover.isEmpty()) {
